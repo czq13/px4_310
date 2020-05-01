@@ -1,22 +1,19 @@
-# mixer for the FireFly6 tilt mechansim servo, elevons and landing gear
-=======================================================================
+Tilt-Quadrotor mixer for PX4FMU (2/2) V2
+===========================
 
-Tilt mechanism servo mixer
----------------------------
+This file defines the aux outputs mixer for a Tilt-quadrotor in the + configuration.
+
+# @output AUX1 Outer servo motor for rotor 2 arm
+# @output AUX2 Outer servo motor for rotor 4 arm
+# @output AUX3 Inner servo motor for rotor 2 arm
+# @output AUX4 Inner servo motor for rotor 4 arm
+
+Servo 1
+
 M: 1
-S: 1 4      0  20000 -10000 -10000  10000
+S: 1 4   10000  10000     0 -15000  15000
 
-Elevon mixers
--------------
-M: 2
-S: 1 0   7500   7500      0 -10000  10000
-S: 1 1   8000   8000      0 -10000  10000
+Servo 2
 
-M: 2
-S: 1 0    7500    7500    0 -10000  10000
-S: 1 1   -8000   -8000    0 -10000  10000
-
-Landing gear mixer
-------------------
 M: 1
-S: 3 6  10000  10000      0 -10000  10000
+S: 1 4   10000   10000      0 -10000  10000

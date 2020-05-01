@@ -78,6 +78,9 @@
 #define MAVLINK_RECEIVER_NET_ADDED_STACK 0
 #endif
 
+#include <v2.0/CH_Messages/mavlink.h>
+#include <v2.0/CH_Messages/mavlink_msg_ch_message.h>
+
 using matrix::wrap_2pi;
 
 MavlinkReceiver::~MavlinkReceiver()
@@ -271,6 +274,10 @@ MavlinkReceiver::handle_message(mavlink_message_t *msg)
 
 	case MAVLINK_MSG_ID_STATUSTEXT:
 		handle_message_statustext(msg);
+		break;
+
+	case MAVLINK_MSG_ID_CH_Message:
+		handle_message_ch_message(msg);
 		break;
 
 	default:
@@ -1393,7 +1400,6 @@ void MavlinkReceiver::fill_thrust(float *thrust_body_array, uint8_t vehicle_type
 	case MAV_TYPE_OCTOROTOR:
 	case MAV_TYPE_TRICOPTER:
 	case MAV_TYPE_HELICOPTER:
-	case MAV_TYPE_COAXIAL:
 		thrust_body_array[2] = -thrust;
 		break;
 
@@ -2738,6 +2744,23 @@ void MavlinkReceiver::handle_message_statustext(mavlink_message_t *msg)
 		_log_message_pub.publish(log_message);
 	}
 }
+#include <uORB/topics/ch_actuator_state.h>
+void MavlinkReceiver::handle_message_ch_message(mavlink_message_t *msg) {
+	mavlink_ch_message_t _ch_message;
+	mavlink_msg_ch_message_decode(msg,&_ch_message);
+	ch_actuator_state_s tmp_status;
+	tmp_status.timestamp = hrt_absolute_time();
+	//printf("orignum=%d\n",_ch_message.num);
+	if (_ch_message.num == 1) {
+		tmp_status.num = 1;
+		tmp_status.value = float(_ch_message.ch_1);
+	}
+	else {
+		tmp_status.num = 0;
+		tmp_status.value = float(_ch_message.ch_2);
+	}
+	_ch_actuator_state_pub.publish(tmp_status);
+}
 
 /**
  * Receive data from UART/UDP
@@ -2810,16 +2833,10 @@ MavlinkReceiver::Run()
 			updateParams();
 		}
 
-		int ret = poll(&fds[0], 1, timeout);
-
-		if (ret > 0) {
+		if (poll(&fds[0], 1, timeout) > 0) {
 			if (_mavlink->get_protocol() == Protocol::SERIAL) {
 				/* non-blocking read. read may return negative values */
 				nread = ::read(fds[0].fd, buf, sizeof(buf));
-
-				if (nread == -1 && errno == ENOTCONN) { // Not connected (can happen for USB)
-					usleep(100000);
-				}
 			}
 
 #if defined(MAVLINK_UDP)
@@ -2902,9 +2919,6 @@ MavlinkReceiver::Run()
 			}
 
 #endif // MAVLINK_UDP
-
-		} else if (ret == -1) {
-			usleep(10000);
 		}
 
 		hrt_abstime t = hrt_absolute_time();

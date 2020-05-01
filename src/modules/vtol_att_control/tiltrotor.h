@@ -43,6 +43,12 @@
 #include "vtol_type.h"
 #include <parameters/param.h>
 #include <drivers/drv_hrt.h>
+#include <uORB/Publication.hpp>
+#include <uORB/topics/rc_channels.h>
+#include <uORB/topics/ch_actuator_controls.h>
+#include <uORB/topics/ch_actuator_state.h>
+#include <uORB/Subscription.hpp>
+#include <uORB/SubscriptionCallback.hpp>
 
 class Tiltrotor : public VtolType
 {
@@ -103,6 +109,11 @@ private:
 	void parameters_update() override;
 	hrt_abstime _last_timestamp_disarmed{0}; /**< used for calculating time since arming */
 	bool _tilt_motors_for_startup{false};
+
+	uORB::Subscription	_rc_sub{ORB_ID(rc_channels)};
+	uORB::Subscription _sub2{ORB_ID(ch_actuator_state)};
+
+	uORB::Publication<ch_actuator_controls_s> _ch_actuator_controls_pub{ORB_ID(ch_actuator_controls)};
 
 };
 #endif

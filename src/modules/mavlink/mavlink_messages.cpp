@@ -115,6 +115,11 @@
 #include <uORB/topics/vtol_vehicle_status.h>
 #include <uORB/topics/wind_estimate.h>
 
+#include <uORB/topics/ch_actuator_controls.h>
+#include <uORB/topics/ch_actuator_state.h>
+#include <v2.0/CH_Messages/mavlink.h>
+#include <v2.0/CH_Messages/mavlink_msg_ch_message.h>
+
 using matrix::Vector3f;
 using matrix::wrap_2pi;
 
@@ -4774,7 +4779,8 @@ public:
 
 	unsigned get_size() override
 	{
-		return _wind_estimate_sub.advertised() ? MAVLINK_MSG_ID_WIND_COV_LEN + MAVLINK_NUM_NON_PAYLOAD_BYTES : 0;
+		//return _wind_estimate_sub.advertised() ? MAVLINK_MSG_ID_WIND_COV_LEN + MAVLINK_NUM_NON_PAYLOAD_BYTES : 0;
+		return MAVLINK_MSG_ID_CH_Message_LEN + MAVLINK_NUM_NON_PAYLOAD_BYTES;
 	}
 
 private:
@@ -4815,8 +4821,8 @@ protected:
 			mavlink_msg_wind_cov_send_struct(_mavlink->get_channel(), &msg);
 
 			return true;
-		}
 
+		}
 		return false;
 	}
 };
@@ -5187,6 +5193,76 @@ protected:
 		return false;
 	}
 };
+int tmp_num;
+class MavlinkStreamCH_Messages : public MavlinkStream
+{
+public:
+	const char *get_name() const override
+	    {
+	        return MavlinkStreamCH_Messages::get_name_static();
+	    }
+	 	 static constexpr const char *get_name_static()
+	    {
+	        return "CH_Messages";
+	    }
+	    static constexpr uint16_t get_id_static()
+	    {
+	        return MAVLINK_MSG_ID_CH_Message;
+	    }
+	    uint16_t get_id() override
+	    {
+	        return get_id_static();
+	    }
+	    static MavlinkStream *new_instance(Mavlink *mavlink)
+	    {
+	        return new MavlinkStreamCH_Messages(mavlink);
+	    }
+	    unsigned get_size() override
+	    {
+	        return MAVLINK_MSG_ID_CH_Message_LEN + MAVLINK_NUM_NON_PAYLOAD_BYTES;
+	    }
+
+	private:
+	    uORB::Subscription _sub{ORB_ID(ch_actuator_controls)};
+	    uORB::Subscription _sub2{ORB_ID(ch_actuator_state)};
+	    uint64_t _ca_traj_time;
+
+	    /* do not allow top copying this class */
+	    MavlinkStreamCH_Messages(MavlinkStreamCH_Messages &);
+	    MavlinkStreamCH_Messages& operator = (const MavlinkStreamCH_Messages &);
+
+	protected:
+	    explicit MavlinkStreamCH_Messages(Mavlink *mavlink) : MavlinkStream(mavlink),
+	        _ca_traj_time(0)
+	    {}
+
+	    bool send(const hrt_abstime t) override
+	    {
+	        struct ch_actuator_controls_s _ch_actuator_controls;    //make sure ca_traj_struct_s is the definition of your uORB topic
+	        struct ch_actuator_state_s _ch_actuator_state;
+	        if (_sub.update(&_ch_actuator_controls)) {
+	        	printf("ch_1=%f,ch_2=%f\n",(double)_ch_actuator_controls.ch_1,(double)_ch_actuator_controls.ch_2);
+
+	        }
+
+	        mavlink_ch_message_t _ch_message;  //make sure mavlink_ca_trajectory_t is the definition of your custom MAVLink message
+	        if (_sub2.update(&_ch_actuator_state)) {
+	        	printf("num=%d,value=%f\n",_ch_actuator_state.num,(double)_ch_actuator_state.value);
+	        	tmp_num = (_ch_actuator_state.num==1)?2:1;
+	        }
+	        if (tmp_num == 0) tmp_num = 1;
+	        printf("tmp_num=%d\n",tmp_num);
+	        //tmp_num = (tmp_num + 1) % 2;
+	        _ch_message.num = tmp_num;
+	        _ch_message.ch_1 = _ch_actuator_controls.ch_1;
+	        _ch_message.ch_2 = _ch_actuator_controls.ch_2;
+
+
+	        mavlink_msg_ch_message_send_struct(_mavlink->get_channel(), &_ch_message);
+
+	        return true;
+	    }
+};
 
 static const StreamListItem streams_list[] = {
 	create_stream_list_item<MavlinkStreamHeartbeat>(),
@@ -5247,7 +5323,8 @@ static const StreamListItem streams_list[] = {
 	create_stream_list_item<MavlinkStreamGroundTruth>(),
 	create_stream_list_item<MavlinkStreamPing>(),
 	create_stream_list_item<MavlinkStreamOrbitStatus>(),
-	create_stream_list_item<MavlinkStreamObstacleDistance>()
+	create_stream_list_item<MavlinkStreamObstacleDistance>(),
+	create_stream_list_item<MavlinkStreamCH_Messages>()
 };
 
 const char *get_stream_name(const uint16_t msg_id)
@@ -5275,3 +5352,5 @@ MavlinkStream *create_mavlink_stream(const char *stream_name, Mavlink *mavlink)
 
 	return nullptr;
 }
+
+
