@@ -43,7 +43,6 @@
 #include "vtol_att_control_main.h"
 
 using namespace matrix;
-using namespace time_literals;
 
 #define ARSP_YAW_CTRL_DISABLE 7.0f	// airspeed at which we stop controlling yaw during a front transition
 
@@ -62,8 +61,35 @@ Tiltrotor::Tiltrotor(VtolAttitudeControl *attc) :
 	_params_handles_tiltrotor.tilt_mc = param_find("VT_TILT_MC");
 	_params_handles_tiltrotor.tilt_transition = param_find("VT_TILT_TRANS");
 	_params_handles_tiltrotor.tilt_fw = param_find("VT_TILT_FW");
-	_params_handles_tiltrotor.tilt_spinup = param_find("VT_TILT_SPINUP");
 	_params_handles_tiltrotor.front_trans_dur_p2 = param_find("VT_TRANS_P2_DUR");
+
+	_params_handles_tiltrotor.tilt_wing_R = param_find("VT_TILT_WING_R");
+	_params_handles_tiltrotor.tilt_wing_L = param_find("VT_TILT_WING_L");
+	_params_handles_tiltrotor.tilt_tail = param_find("VT_TILT_TAIL");
+	_params_handles_tiltrotor.tilt_thrust = param_find("VT_TILT_THRUST");
+	_params_handles_tiltrotor.tilt_aileron = param_find("VT_TILT_AILERON");
+
+	_params_handles_tiltrotor.tilt_wing_thrust_lim = param_find("VT_TILT_WING_TL");
+	_params_handles_tiltrotor.tilt_tail_thrust_lim = param_find("VT_TILT_TAIL_TL");
+
+	_params_handles_tiltrotor.tilt_thrust_tail = param_find("VT_TILT_THRUST_T");
+	_params_handles_tiltrotor.tilt_mode = param_find("VT_TILT_MODE");
+
+	_params_handles_tiltrotor.tilt_tail0 = param_find("VT_TILT_TAIL_0");
+	_params_handles_tiltrotor.tilt_tail1 = param_find("VT_TILT_TAIL_1");
+	_params_handles_tiltrotor.tilt_tail2 = param_find("VT_TILT_TAIL_2");
+	_params_handles_tiltrotor.tilt_tail3 = param_find("VT_TILT_TAIL_3");
+	_params_handles_tiltrotor.tilt_tail4 = param_find("VT_TILT_TAIL_4");
+	_params_handles_tiltrotor.tilt_tail5 = param_find("VT_TILT_TAIL_5");
+	_params_handles_tiltrotor.tilt_tail6 = param_find("VT_TILT_TAIL_6");
+
+	_params_handles_tiltrotor.tilt_wing0 = param_find("VT_TILT_WING_0");
+	_params_handles_tiltrotor.tilt_wing1 = param_find("VT_TILT_WING_1");
+	_params_handles_tiltrotor.tilt_wing2 = param_find("VT_TILT_WING_2");
+	_params_handles_tiltrotor.tilt_wing3 = param_find("VT_TILT_WING_3");
+	_params_handles_tiltrotor.tilt_wing4 = param_find("VT_TILT_WING_4");
+	_params_handles_tiltrotor.tilt_wing5 = param_find("VT_TILT_WING_5");
+	_params_handles_tiltrotor.tilt_wing6 = param_find("VT_TILT_WING_6");
 }
 
 void
@@ -83,13 +109,78 @@ Tiltrotor::parameters_update()
 	param_get(_params_handles_tiltrotor.tilt_fw, &v);
 	_params_tiltrotor.tilt_fw = v;
 
-	/* vtol tilt mechanism position during motor spinup */
-	param_get(_params_handles_tiltrotor.tilt_spinup, &v);
-	_params_tiltrotor.tilt_spinup = v;
-
 	/* vtol front transition phase 2 duration */
 	param_get(_params_handles_tiltrotor.front_trans_dur_p2, &v);
 	_params_tiltrotor.front_trans_dur_p2 = v;
+
+	param_get(_params_handles_tiltrotor.tilt_wing_R,&v);
+	_params_tiltrotor.tilt_wing_R = v;
+
+	param_get(_params_handles_tiltrotor.tilt_wing_L,&v);
+	_params_tiltrotor.tilt_wing_L = v;
+
+	param_get(_params_handles_tiltrotor.tilt_tail,&v);
+	_params_tiltrotor.tilt_tail = v;
+
+	param_get(_params_handles_tiltrotor.tilt_thrust,&v);
+	_params_tiltrotor.tilt_thrust = v;
+
+	param_get(_params_handles_tiltrotor.tilt_aileron,&v);
+	_params_tiltrotor.tilt_aileron = v;
+
+	param_get(_params_handles_tiltrotor.tilt_wing_thrust_lim,&v);
+	_params_tiltrotor.tilt_wing_thrust_lim = v;
+
+	param_get(_params_handles_tiltrotor.tilt_tail_thrust_lim,&v);
+	_params_tiltrotor.tilt_tail_thrust_lim = v;
+
+	param_get(_params_handles_tiltrotor.tilt_thrust_tail,&v);
+	_params_tiltrotor.tilt_thrust_tail = v;
+
+	param_get(_params_handles_tiltrotor.tilt_mode,&v);
+	_params_tiltrotor.tilt_mode = v;
+
+	param_get(_params_handles_tiltrotor.tilt_tail0,&v);
+	_params_tiltrotor.tilt_tail_interpy[0] = v;
+
+	param_get(_params_handles_tiltrotor.tilt_tail1,&v);
+	_params_tiltrotor.tilt_tail_interpy[1] = v;
+
+	param_get(_params_handles_tiltrotor.tilt_tail2,&v);
+	_params_tiltrotor.tilt_tail_interpy[2] = v;
+
+	param_get(_params_handles_tiltrotor.tilt_tail3,&v);
+	_params_tiltrotor.tilt_tail_interpy[3] = v;
+
+	param_get(_params_handles_tiltrotor.tilt_tail4,&v);
+	_params_tiltrotor.tilt_tail_interpy[4] = v;
+
+	param_get(_params_handles_tiltrotor.tilt_tail5,&v);
+	_params_tiltrotor.tilt_tail_interpy[5] = v;
+
+	param_get(_params_handles_tiltrotor.tilt_tail6,&v);
+	_params_tiltrotor.tilt_tail_interpy[6] = v;
+
+	param_get(_params_handles_tiltrotor.tilt_wing0,&v);
+	_params_tiltrotor.tilt_wing_interpx[0] = v;
+
+	param_get(_params_handles_tiltrotor.tilt_wing1,&v);
+	_params_tiltrotor.tilt_wing_interpx[1] = v;
+
+	param_get(_params_handles_tiltrotor.tilt_wing2,&v);
+	_params_tiltrotor.tilt_wing_interpx[2] = v;
+
+	param_get(_params_handles_tiltrotor.tilt_wing3,&v);
+	_params_tiltrotor.tilt_wing_interpx[3] = v;
+
+	param_get(_params_handles_tiltrotor.tilt_wing4,&v);
+	_params_tiltrotor.tilt_wing_interpx[4] = v;
+
+	param_get(_params_handles_tiltrotor.tilt_wing5,&v);
+	_params_tiltrotor.tilt_wing_interpx[5] = v;
+
+	param_get(_params_handles_tiltrotor.tilt_wing6,&v);
+	_params_tiltrotor.tilt_wing_interpx[6] = v;
 }
 
 void Tiltrotor::update_vtol_state()
@@ -210,64 +301,14 @@ void Tiltrotor::update_vtol_state()
 		break;
 	}
 }
-int direct;
+
 void Tiltrotor::update_mc_state()
 {
 	VtolType::update_mc_state();
 
-	/*Motor spin up: define the first second after arming as motor spin up time, during which
-	* the tilt is set to the value of VT_TILT_SPINUP. This allowes the user to set a spin up
-	* tilt angle in case the propellers don't spin up smootly in full upright (MC mode) position.
-	*/
-
-	const int spin_up_duration_p1 = 1000_ms; // duration of 1st phase of spinup (at fixed tilt)
-	const int spin_up_duration_p2 = 700_ms; // duration of 2nd phase of spinup (transition from spinup tilt to mc tilt)
-
-	// reset this timestamp while disarmed
-	if (!_v_control_mode->flag_armed) {
-		_last_timestamp_disarmed = hrt_absolute_time();
-		_tilt_motors_for_startup = _params_tiltrotor.tilt_spinup > 0.01f; // spinup phase only required if spinup tilt > 0
-
-	} else if (_tilt_motors_for_startup) {
-		// leave motors tilted forward after arming to allow them to spin up easier
-		if (hrt_absolute_time() - _last_timestamp_disarmed > (spin_up_duration_p1 + spin_up_duration_p2)) {
-			_tilt_motors_for_startup = false;
-		}
-	}
-
-	if (_tilt_motors_for_startup) {
-		if (hrt_absolute_time() - _last_timestamp_disarmed < spin_up_duration_p1) {
-			_tilt_control = _params_tiltrotor.tilt_spinup;
-
-		} else {
-			// duration phase 2: begin to adapt tilt to multicopter tilt
-			float delta_tilt = (_params_tiltrotor.tilt_mc - _params_tiltrotor.tilt_spinup);
-			_tilt_control = _params_tiltrotor.tilt_spinup + delta_tilt / spin_up_duration_p2 * (hrt_absolute_time() -
-					(_last_timestamp_disarmed + spin_up_duration_p1));
-		}
-
-		_mc_yaw_weight = 0.0f; //disable yaw control during spinup
-
-	} else {
-		// normal operation
-		//_tilt_control = VtolType::pusher_assist();
-		/*
-		if (direct != -1 && direct != 1) {
-			direct = -1;
-			_tilt_control = 1.0f;
-		}
-		_tilt_control += 0.0001f*direct;
-		if (_tilt_control > 0.85f){
-			direct = -1;
-		}
-		if (_tilt_control < -1.01f){
-			direct = 1;
-		}*/
-
-		_mc_yaw_weight = 1.0f;
-		_v_att_sp->thrust_body[2] = Tiltrotor::thrust_compensation_for_tilt();
-	}
-
+	//_tilt_control = VtolType::pusher_assist();
+	//printf("_tilt_control=%f\n",(double)_tilt_control);
+	_v_att_sp->thrust_body[2] = Tiltrotor::thrust_compensation_for_tilt();
 }
 
 void Tiltrotor::update_fw_state()
@@ -410,9 +451,6 @@ void Tiltrotor::waiting_on_tecs()
 /**
 * Write data to actuator output topic.
 */
-float _ch_tilt,deltaN,deltaNy;
-float a_posc2[4]={0,0,0,0},real1,real2;
-float a_pos_pre2; //第二级舵机的位置预测值
 void Tiltrotor::fill_actuator_outputs()
 {
 	// Multirotor output
@@ -445,90 +483,7 @@ void Tiltrotor::fill_actuator_outputs()
 	_actuators_out_1->timestamp = hrt_absolute_time();
 	_actuators_out_1->timestamp_sample = _actuators_fw_in->timestamp_sample;
 
-	struct rc_channels_s rc_channel;
-	if (_rc_sub.update(&rc_channel)){
-		//printf("thrust=%lf\n",(double)rc_channel.channels[rc_channel.RC_CHANNELS_FUNCTION_THROTTLE]);
-		_ch_tilt = rc_channel.channels[rc_channel.RC_CHANNELS_FUNCTION_THROTTLE];
-		deltaN = deltaN * 0.95f + 0.05f * rc_channel.channels[rc_channel.RC_CHANNELS_FUNCTION_THROTTLE];
-		deltaNy= deltaNy* 0.95f + 0.05f * rc_channel.channels[rc_channel.RC_CHANNELS_FUNCTION_PITCH];
-	}
-	//CZQ:tilt_wing_debug
-	//_tilt_control = (_ch_tilt-0.5f) * 2.9f;
-	//CZQ:vector thrust
-	struct ch_actuator_state_s _ch_actuator_state;
-	if (_sub2.update(&_ch_actuator_state)) {
-		if (_ch_actuator_state.num == 1)
-			real1 = _ch_actuator_state.value;
-		else real2 = _ch_actuator_state.value;
-		printf("num=%d,value=%f\n",_ch_actuator_state.num,(double)_ch_actuator_state.value)
-;	}
-
-	float a_nozzle = 25.0f/57.3f;
-	float a1_nozzle;
-	float a2_nozzle;
-	float Ky_nozzle;
-	float Kn_nozzle;
-	float  c1_nozzle;
-	float  c2_nozzle;
-	a_nozzle = 25.0f / 57.3f;
-	Kn_nozzle = deltaN * 105.0f/57.3f;
-	Ky_nozzle = (deltaNy-0.5f) * 2.0f * 15.0f / 57.3f + 0.2617f;
-	//printf("Kn_nozzle=%f,Ky_nozzle=%f\n",(double)Kn_nozzle,(double)Ky_nozzle);
-	//Ky_nozzle = (0.02*(rc_5_i) - 30.0 )/57.3;//遥控器5 1000~2000映射-10~10度 在换成弧度
-	//	Kn_nozzle = (200.0 - 0.1*(rc_6_i) )/57.3;//遥控器6 1000~2000映射100~0度 在换成弧度
-		//printf("rc_5=%d,rc_6=%d   ",rc_5.radio_out,rc_6.radio_out);
-	if(Kn_nozzle>99.9999f/57.3f){
-		Kn_nozzle=99.9999f/57.3f;
-	}
-	if(Kn_nozzle<0.0001f){
-		Kn_nozzle=0.0001f;
-	}
-
-
-	a2_nozzle =  acos((cos(Kn_nozzle/2.0f)-cos(a_nozzle)*cos(a_nozzle))/(sin(a_nozzle)*sin(a_nozzle))) ;//二级喷管角度
-	c2_nozzle = -(180.0f-a2_nozzle * 57.3f)*2.5f; //二级舵机输入角度值
-
-	/*a_pos_pre2=0.75*chuart.sd[1].pos*0.15+0.25* a_posc2[3];
-	a_pos_pre2=0.75*a_pos_pre2+0.25* a_posc2[2];
-	a_pos_pre2=0.75*a_pos_pre2+0.25* a_posc2[1];
-	a_pos_pre2=0.75*a_pos_pre2+0.25* a_posc2[0];
-
-
-	if((c2_nozzle-a_pos_pre2) > 3.5){
-		c2_nozzle = a_pos_pre2 + 3.5;
-	}
-	else if((c2_nozzle-a_pos_pre2) < -3.5){
-		c2_nozzle = a_pos_pre2 -3.5;
-	}*/
-	if(c2_nozzle > 0.0f){
-	    c2_nozzle = 0.0f;
-	}
-	else if(c2_nozzle < -450.0f){
-	    c2_nozzle = -450.0f;
-	}
-
-	a_posc2[3]=a_posc2[2];
-	a_posc2[2]=a_posc2[1];
-	a_posc2[1]=a_posc2[0];
-	a_posc2[0]=c2_nozzle;
-
-	a2_nozzle= (180.0f+c2_nozzle/2.5f)/57.3f;
-
-	float yaw_pwm = 0.0f;
-	a1_nozzle =  atan(tan(a2_nozzle/2.0f)*cos(a_nozzle)) + Ky_nozzle  ;  	//一级喷管角度
-	c1_nozzle =  -(-a1_nozzle * 57.3f-yaw_pwm*1.5f)*2.55f;//转换成一级舵机输入角度值
-	c2_nozzle += 450.0f;
-	c1_nozzle *= 1.944f;
-	c2_nozzle *= 2.787f;
-	ch_actuator_controls_s tmp_status;
-	tmp_status.timestamp = hrt_absolute_time();
-	tmp_status.ch_1 = c1_nozzle;
-	tmp_status.ch_2 = c2_nozzle;
-	tmp_status.num = 0;
-	_ch_actuator_controls_pub.publish(tmp_status);
-
-	//printf("_tilt_control = %lf",(double)_tilt_control);
-	_actuators_out_1->control[4] = _tilt_control;
+	parameters_update();
 
 	if (_params->elevons_mc_lock && _vtol_schedule.flight_mode == vtol_mode::MC_MODE) {
 		_actuators_out_1->control[actuator_controls_s::INDEX_ROLL] = 0.0f;
@@ -542,6 +497,50 @@ void Tiltrotor::fill_actuator_outputs()
 			_actuators_fw_in->control[actuator_controls_s::INDEX_PITCH];
 		_actuators_out_1->control[actuator_controls_s::INDEX_YAW] =
 			_actuators_fw_in->control[actuator_controls_s::INDEX_YAW];
+	}
+
+	_actuators_out_1->control[4] = (_params_tiltrotor.tilt_tail)*2.0f;
+	_actuators_out_1->control[5] = (_params_tiltrotor.tilt_wing_R);
+	_actuators_out_1->control[6] = (_params_tiltrotor.tilt_wing_L);
+	//_actuators_out_0->control[3] = _params_tiltrotor.tilt_thrust;
+	_actuators_out_0->control[5] = _params_tiltrotor.tilt_aileron;
+	if (_params_tiltrotor.tilt_mode < 0) {
+		float tmp_thrust = 0.0f;
+		if (_params_tiltrotor.tilt_mode < -0.5f) {
+			tmp_thrust = _actuators_out_0->control[actuator_controls_s::INDEX_THROTTLE] - 0.67f;
+			//_actuators_out_0->control[3] = (_params_tiltrotor.tilt_wing_thrust_lim+1.0f) * tmp_thrust -1.0f;
+			if (tmp_thrust > 0.0f) tmp_thrust = 0.0f;
+			else if (tmp_thrust < -1.0f) tmp_thrust = -1.0f;
+			_actuators_out_0->control[3] = tmp_thrust;
+		}
+		else {
+			_actuators_out_0->control[3] = _params_tiltrotor.tilt_thrust;
+			tmp_thrust = _actuators_out_0->control[3];
+		}
+		//_actuators_out_0->control[4] = (_params_tiltrotor.tilt_tail_thrust_lim+1.0f) * tmp_thrust -1.0f;
+		int i = 0;
+		bool succ = false;
+		for (i = 0;i < 6;i++) {
+			if (_params_tiltrotor.tilt_wing_interpx[i] < tmp_thrust &&
+					tmp_thrust <= _params_tiltrotor.tilt_wing_interpx[i+1]) {
+				_actuators_out_0->control[4] = _params_tiltrotor.tilt_tail_interpy[i] +
+						(_params_tiltrotor.tilt_tail_interpy[i+1]-_params_tiltrotor.tilt_tail_interpy[i]) /
+						(_params_tiltrotor.tilt_wing_interpx[i+1]-_params_tiltrotor.tilt_wing_interpx[i]) *
+						(tmp_thrust - _params_tiltrotor.tilt_wing_interpx[i]);
+				succ = true;
+				break;
+			}
+		}
+		if (!succ) {
+			_actuators_out_0->control[4] = -1;
+		}
+	}
+	else {
+		_actuators_out_0->control[3] = _params_tiltrotor.tilt_thrust;
+		_actuators_out_0->control[4] = _params_tiltrotor.tilt_thrust_tail;
+		_actuators_out_0->control[0] = 0.0f;
+		_actuators_out_0->control[1] = 0.0f;
+		_actuators_out_0->control[2] = 0.0f;
 	}
 }
 

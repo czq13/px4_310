@@ -72,20 +72,6 @@ PARAM_DEFINE_FLOAT(VT_TILT_TRANS, 0.3f);
 PARAM_DEFINE_FLOAT(VT_TILT_FW, 1.0f);
 
 /**
- * Tilt actuator control value commanded when disarmed and during the first second after arming.
- *
- * This specific tilt during spin-up is necessary for some systems whose motors otherwise don't
- * spin-up freely.
- *
- * @min 0.0
- * @max 1.0
- * @increment 0.01
- * @decimal 3
- * @group VTOL Attitude Control
- */
-PARAM_DEFINE_FLOAT(VT_TILT_SPINUP, 0.0f);
-
-/**
  * Duration of front transition phase 2
  *
  * Time in seconds it should take for the rotors to rotate forward completely from the point
@@ -99,3 +85,102 @@ PARAM_DEFINE_FLOAT(VT_TILT_SPINUP, 0.0f);
  * @group VTOL Attitude Control
  */
 PARAM_DEFINE_FLOAT(VT_TRANS_P2_DUR, 0.5f);
+
+/**
+ * Tilt_Tail
+ *
+ * Time in seconds it should take for the rotors to rotate forward completely from the point
+ * when the plane has picked up enough airspeed and is ready to go into fixed wind mode.
+ *
+ * @unit s
+ * @min -10.0
+ * @max 10.0
+ * @increment 0.01
+ * @decimal 3
+ * @group VTOL Attitude Control
+ */
+PARAM_DEFINE_FLOAT(VT_TILT_TAIL, 0.5f);
+
+/**
+ * Tilt_Wing
+ *
+ * Time in seconds it should take for the rotors to rotate forward completely from the point
+ * when the plane has picked up enough airspeed and is ready to go into fixed wind mode.
+ *
+ * @unit s
+ * @min -10.0
+ * @max 10.0
+ * @increment 0.01
+ * @decimal 3
+ * @group VTOL Attitude Control
+ */
+PARAM_DEFINE_FLOAT(VT_TILT_WING_L, 0.5f);
+
+PARAM_DEFINE_FLOAT(VT_TILT_WING_R, 0.5f);
+
+PARAM_DEFINE_FLOAT(VT_TILT_WING_TL, 0.5f);
+
+PARAM_DEFINE_FLOAT(VT_TILT_TAIL_TL, 0.5f);
+
+/**
+ * ROTOR_THRUST
+ *
+ * Time in seconds it should take for the rotors to rotate forward completely from the point
+ * when the plane has picked up enough airspeed and is ready to go into fixed wind mode.
+ *
+ * @unit s
+ * @min 0
+ * @max 2.0
+ * @increment 0.01
+ * @decimal 3
+ * @group VTOL Attitude Control
+ */
+PARAM_DEFINE_FLOAT(VT_TILT_THRUST, 0.5f);
+
+PARAM_DEFINE_FLOAT(VT_TILT_THRUST_T, 0.5f);
+
+/**
+ * ROTOR_THRUST
+ *
+ * Time in seconds it should take for the rotors to rotate forward completely from the point
+ * when the plane has picked up enough airspeed and is ready to go into fixed wind mode.
+ *
+ * @unit s
+ * @min 0
+ * @max 2.0
+ * @increment 0.01
+ * @decimal 3
+ * @group VTOL Attitude Control
+ */
+
+PARAM_DEFINE_FLOAT(VT_TILT_MODE, 0.0f);
+
+PARAM_DEFINE_FLOAT(VT_TILT_TAIL_0, -1.0f);
+PARAM_DEFINE_FLOAT(VT_TILT_TAIL_1, 0.0f);
+PARAM_DEFINE_FLOAT(VT_TILT_TAIL_2, 0.0f);
+PARAM_DEFINE_FLOAT(VT_TILT_TAIL_3, 0.0f);
+PARAM_DEFINE_FLOAT(VT_TILT_TAIL_4, 0.0f);
+PARAM_DEFINE_FLOAT(VT_TILT_TAIL_5, 0.0f);
+PARAM_DEFINE_FLOAT(VT_TILT_TAIL_6, 1.0f);
+
+PARAM_DEFINE_FLOAT(VT_TILT_WING_0, -1.0f);
+PARAM_DEFINE_FLOAT(VT_TILT_WING_1, 0.0f);
+PARAM_DEFINE_FLOAT(VT_TILT_WING_2, 0.0f);
+PARAM_DEFINE_FLOAT(VT_TILT_WING_3, 0.0f);
+PARAM_DEFINE_FLOAT(VT_TILT_WING_4, 0.0f);
+PARAM_DEFINE_FLOAT(VT_TILT_WING_5, 0.0f);
+PARAM_DEFINE_FLOAT(VT_TILT_WING_6, 1.0f);
+/**
+ * ROTOR_aileron
+ *
+ * Time in seconds it should take for the rotors to rotate forward completely from the point
+ * when the plane has picked up enough airspeed and is ready to go into fixed wind mode.
+ *
+ * @unit s
+ * @min 0
+ * @max 2.0
+ * @increment 0.01
+ * @decimal 3
+ * @group VTOL Attitude Control
+ */
+PARAM_DEFINE_FLOAT(VT_TILT_AILERON, 0.5f);

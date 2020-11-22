@@ -103,6 +103,7 @@ MulticopterAttitudeControl::parameters_updated()
 						radians(_param_mc_yawrate_max.get())));
 
 	_man_tilt_max = math::radians(_param_mpc_man_tilt_max.get());
+	_begin_exp = _param_begin_exp.get();
 }
 
 float
@@ -134,7 +135,7 @@ MulticopterAttitudeControl::generate_attitude_setpoint(float dt, bool reset_yaw_
 	const float yaw = Eulerf(Quatf(_v_att.q)).psi();
 
 	/* reset yaw setpoint to current position if needed */
-	if (reset_yaw_sp) {
+	if (reset_yaw_sp && (_begin_exp < 0.0f)) {
 		_man_yaw_sp = yaw;
 
 	} else if (_manual_control_sp.z > 0.05f || _param_mc_airmode.get() == (int32_t)Mixer::Airmode::roll_pitch_yaw) {
